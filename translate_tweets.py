@@ -248,10 +248,39 @@ def find_orgtweets(ids,orgtweets):
         except:
             pass
     return orgtweetsback
+
+def compare_translaions(tweets1,tweets2):
+    tweets1=pd.read_csv(r'translated\API1.csv')
+    tweets2=pd.read_excel(r'translated\API2.xlsx')
+    newtweets1=[]
+    newtweetids=[]
+    newtweets2=[]
+    originaltweets=[]
+    for index,curtweet2 in tweets2.iterrows():
+        #print(curtweet1.iloc['id'])
+        tw2locintw1=tweets1['id'][tweets1['id']==curtweet2['tweet_id']].index
+        if not tw2locintw1.empty:
+            curtweet1=tweets1.iloc[tw2locintw1]
+            newtweetids.append(tweets2.iloc[index]['tweet_id'])
+            newtweets1.append(curtweet1.iloc[0]['translation'])
+            newtweets2.append(tweets2.iloc[index]['Translated_tweets'])
+            originaltweets.append(curtweet1.iloc[0]['original_text'])
+    dfdict={'id': newtweetids,'original': originaltweets,'API1': newtweets1,'API2': newtweets2}
+    twcomparison=pd.DataFrame(data=dfdict)
+    twcomparison.to_excel(r'translated\API_comparison.xlsx')
+    comp_table = pa.Table.from_pandas(twcomparison)
+    pq.write_table(comp_table, r'translated\API_comparison.parquet')
+    lasti=-1
+    for samplei in range(1,7):
+        sample=twcomparison.iloc[lasti+1:samplei*200,]
+        sample.to_excel('translated\\Sample '+str(samplei)+'.xlsx') 
+        lasti=samplei*200
+        
     
 if __name__ == "__main__":
     # import tweets
-    datasetdir=r"D:\Professional\social-scrapper\dataset\out_data"
+    datasetdir=r"D:\Professional\corona\twitter-translate"
+    os.chdir(datasetdir)
     separator=' §§§CUT§§§ '
     redseparator='CUT'
     #pdb.set_trace()
